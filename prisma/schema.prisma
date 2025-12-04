@@ -1,0 +1,79 @@
+// Prisma schema for MongoDB
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String?   @unique
+  phone         String?   @unique
+  username      String    @unique
+  passwordHash  String?
+  avatarUrl     String?
+  googleId      String?   @unique
+  provider      String    @default("credentials") // credentials, google, email_otp, phone_otp
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  scores        Score[]
+  gameSessions  GameSession[]
+  accounts      Account[]
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model OTPVerification {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String   // email or phone
+  type       String   // "email" or "phone"
+  otp        String
+  expiresAt  DateTime
+  verified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, type])
+}
+
+model Score {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  score       Int
+  level       Int
+  timeMs      Int
+  completedAt DateTime @default(now())
+  
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GameSession {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  level       Int
+  mazeSize    Int
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  completed   Boolean  @default(false)
+  
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
