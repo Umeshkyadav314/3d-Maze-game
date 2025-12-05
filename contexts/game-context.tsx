@@ -118,17 +118,54 @@ export function GameProvider({ children }: { children: ReactNode }) {
       let canMoveX = true
       let canMoveZ = true
 
-      if (currentCellX !== targetCellX || currentCellZ !== targetCellZ) {
-        const currentCell = maze.cells[currentCellX]?.[currentCellZ]
-        if (!currentCell) return false
+      const currentCell = maze.cells[currentCellX]?.[currentCellZ]
+      if (!currentCell) return false
 
-        // Check X movement
-        if (targetCellX > currentCellX && currentCell.walls.east) canMoveX = false
-        if (targetCellX < currentCellX && currentCell.walls.west) canMoveX = false
+      // Check if we're crossing a cell boundary
+      const crossingX = currentCellX !== targetCellX
+      const crossingZ = currentCellZ !== targetCellZ
 
-        // Check Z movement
-        if (targetCellZ > currentCellZ && currentCell.walls.south) canMoveZ = false
-        if (targetCellZ < currentCellZ && currentCell.walls.north) canMoveZ = false
+      // Player radius for collision detection
+      const playerRadius = 0.2
+      const cellLocalX = playerPosition.x - currentCellX
+      const cellLocalZ = playerPosition.z - currentCellZ
+
+      // Check X movement (east/west)
+      if (dx !== 0) {
+        if (crossingX) {
+          // Crossing cell boundary - check wall
+          if (targetCellX > currentCellX && currentCell.walls.east) {
+            canMoveX = false
+          } else if (targetCellX < currentCellX && currentCell.walls.west) {
+            canMoveX = false
+          }
+        } else {
+          // Within same cell - check proximity to walls
+          if (dx > 0 && currentCell.walls.east && cellLocalX + playerRadius >= 1) {
+            canMoveX = false
+          } else if (dx < 0 && currentCell.walls.west && cellLocalX - playerRadius <= 0) {
+            canMoveX = false
+          }
+        }
+      }
+
+      // Check Z movement (south/north)
+      if (dz !== 0) {
+        if (crossingZ) {
+          // Crossing cell boundary - check wall
+          if (targetCellZ > currentCellZ && currentCell.walls.south) {
+            canMoveZ = false
+          } else if (targetCellZ < currentCellZ && currentCell.walls.north) {
+            canMoveZ = false
+          }
+        } else {
+          // Within same cell - check proximity to walls
+          if (dz > 0 && currentCell.walls.south && cellLocalZ + playerRadius >= 1) {
+            canMoveZ = false
+          } else if (dz < 0 && currentCell.walls.north && cellLocalZ - playerRadius <= 0) {
+            canMoveZ = false
+          }
+        }
       }
 
       // Apply sliding movement - move in allowed directions

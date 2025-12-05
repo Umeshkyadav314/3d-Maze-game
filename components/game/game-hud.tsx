@@ -125,7 +125,7 @@ export default function GameHUD() {
         {!isMobile && (
           <div className="mt-2 text-center">
             <p className="text-xs text-muted-foreground bg-background/60 backdrop-blur-sm inline-block px-3 py-1 rounded-full">
-              WASD/Arrows to move | Q/E or Mouse to look | Click zombies to shoot
+              WASD/Arrows to move | Q/E or Mouse to look | Spacebar/Click to shoot zombies
             </p>
           </div>
         )}
